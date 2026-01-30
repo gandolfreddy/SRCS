@@ -15,6 +15,14 @@ interface Classroom {
 const classrooms: Map<string, Classroom> = new Map();
 const clients: Set<WebSocket> = new Set();
 
+/**
+ * 將資料廣播給所有連接的 WebSocket 客戶端
+ * 
+ * 此函式會將收到的資料轉換為 JSON 字串，並發送給目前所有
+ * 處於 OPEN 狀態的 WebSocket 連線。
+ * 
+ * @param data 要廣播的資料內容
+ */
 function broadcast(data: unknown) {
   const message = JSON.stringify(data);
   clients.forEach((client) => {
@@ -24,6 +32,14 @@ function broadcast(data: unknown) {
   });
 }
 
+/**
+ * 處理所有連入的 HTTP 請求
+ * 
+ * 根據路徑與 HTTP 請求方法，導向至 WebSocket 升級、API 路由或靜態檔案服務。
+ * 
+ * @param req 傳入的 HTTP 請求物件
+ * @returns 回傳包含處理結果的 HTTP 響應物件
+ */
 async function handleRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
 
@@ -181,7 +197,7 @@ async function handleRequest(req: Request): Promise<Response> {
 
     if (body.studentIndex !== undefined) {
       const student = classroom.students[body.studentIndex];
-      
+
       if (body.left !== undefined) {
         student.left = body.left;
         student.present = true; // 已離開狀態下保持present為true
@@ -191,7 +207,7 @@ async function handleRequest(req: Request): Promise<Response> {
           student.left = false; // 到達教室時清除離開狀態
         }
       }
-      
+
       broadcast({
         type: "student_updated",
         classroomId: id,
@@ -234,10 +250,27 @@ async function handleRequest(req: Request): Promise<Response> {
   return new Response("Not Found", { status: 404 });
 }
 
+/**
+ * 處理從客戶端經由 WebSocket 傳送過來的訊息
+ * 
+ * 目前此函式作為佔位符，若未來需要實作雙向即時通訊
+ * (例如：客戶端直接透過 Socket 點名) 可在此擴充邏輯。
+ * 
+ * @param data 解析後的 JSON 訊息物件
+ */
 function handleWebSocketMessage(data: any) {
   // WebSocket 訊息處理（如果需要）
 }
 
+/**
+ * 讀取並回傳靜態檔案庫內容
+ * 
+ * 此函式會嘗試從伺服器本地端讀取指定的檔案，並根據副檔名
+ * 自動設定適當的 Content-Type 標頭。
+ * 
+ * @param filename 要讀取的檔案名稱（相對於 server.ts 的路徑）
+ * @returns 回傳包含檔案內容的 HTTP 響應物件，若檔案不存在則回傳 404
+ */
 async function serveFile(filename: string): Promise<Response> {
   try {
     const file = await Deno.readTextFile(new URL(filename, import.meta.url));
@@ -253,4 +286,5 @@ async function serveFile(filename: string): Promise<Response> {
 console.log("Server starting...");
 console.log("資料儲存於瀏覽器 localStorage");
 
+// 正式啟動伺服器，並使用 handleRequest 來處理所有進入的流量
 Deno.serve(handleRequest);

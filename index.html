@@ -101,8 +101,8 @@
     .student-card.left:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      background: #4CAF50;
-      border-color: #45a049;
+      background: #ef9a9a;
+      border-color: #e57373;
     }
 
     .student-card.left::after {
@@ -280,18 +280,18 @@
         studentCard.textContent = student.name;
         studentCard.dataset.classroomId = classroom.id;
         studentCard.dataset.studentIndex = index;
-        
+
         // 添加點擊事件：綠色可標記已離開，紅色可返回教室
-        studentCard.addEventListener('click', function() {
+        studentCard.addEventListener('click', function () {
           // 從當前 DOM 狀態判斷
           const isCurrentlyLeft = this.classList.contains('left');
           const isCurrentlyPresent = this.classList.contains('present');
-          
+
           if (isCurrentlyPresent || isCurrentlyLeft) {
             toggleStudentLeftStatus(classroom.id, index, isCurrentlyLeft);
           }
         });
-        
+
         gridDiv.appendChild(studentCard);
       });
 
