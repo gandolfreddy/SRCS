@@ -1,6 +1,10 @@
 {
   "tasks": {
-    "dev": "deno run --allow-net --allow-read --allow-write --watch server.ts",
-    "start": "deno run --allow-net --allow-read --allow-write server.ts"
+    "dev": "deno run --allow-net --allow-read --watch server.ts",
+    "start": "deno run --allow-net --allow-read server.ts"
+  },
+  "deploy": {
+    "entrypoint": "server.ts",
+    "project": "srcs"
   }
 }

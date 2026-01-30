@@ -240,7 +240,7 @@ function handleWebSocketMessage(data: any) {
 
 async function serveFile(filename: string): Promise<Response> {
   try {
-    const file = await Deno.readTextFile(filename);
+    const file = await Deno.readTextFile(new URL(filename, import.meta.url));
     const contentType = filename.endsWith(".html") ? "text/html" : "text/plain";
     return new Response(file, {
       headers: { "Content-Type": contentType }
@@ -250,9 +250,7 @@ async function serveFile(filename: string): Promise<Response> {
   }
 }
 
-console.log("Server running on http://localhost:8000");
-console.log("管理員頁面: http://localhost:8000/admin");
-console.log("使用者頁面: http://localhost:8000");
+console.log("Server starting...");
 console.log("資料儲存於瀏覽器 localStorage");
 
-Deno.serve({ port: 8000 }, handleRequest);
+Deno.serve(handleRequest);

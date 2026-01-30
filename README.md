@@ -30,23 +30,47 @@
 
 請保證您的執行環境已安裝 [Deno](https://deno.land/)。
 
-### 執行步驟
+### 本地執行步驟
 
 1. **開發模式**：具備檔案變更自動偵測與重新啟動功能。
+
    ```bash
    deno task dev
    ```
 
 2. **一般啟動**：
+
    ```bash
    deno task start
    ```
 
 啟動後，請使用瀏覽器存取 `http://localhost:8000` 即可開始使用。
 
+### 部署到 Deno Deploy
+
+1. **安裝 Deno Deploy CLI**（如尚未安裝）：
+
+   ```bash
+   deno install -A jsr:@deno/deployctl
+   ```
+
+2. **部署應用程式**：
+
+   ```bash
+   deployctl deploy
+   ```
+
+3. 部署完成後，系統會提供您的應用程式 URL。
+
+**注意事項**：
+
+- 資料儲存於瀏覽器的 localStorage，伺服器端僅作為即時通訊中繼。
+- 首次存取時需使用管理員介面建立教室或從 localStorage 同步資料。
+
 ## 專業用語說明
 
 為了符合台灣專業電腦術語習慣，本專案文件遵循以下用語規範：
+
 - 使用「建立」而非「創建」
 - 使用「目前」而非「當前」
 - 使用「設定」而非「配置」
