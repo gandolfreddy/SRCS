@@ -48,7 +48,7 @@
 
 ### 部署到 Deno Deploy
 
-1. **安裝 Deno Deploy CLI**（如尚未安裝）：
+1. **安裝 Deno Deploy CLI**（如尚未安裝，選用）：
 
    ```bash
    deno install -A jsr:@deno/deployctl
