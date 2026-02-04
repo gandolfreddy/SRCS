@@ -114,29 +114,6 @@ async function handleRequest(req: Request): Promise<Response> {
     });
   }
 
-  // 批次同步教室資料（用於從 localStorage 恢復）
-  if (url.pathname === "/api/classrooms/sync" && req.method === "POST") {
-    const body = await req.json();
-    const syncedClassrooms: Classroom[] = body.classrooms;
-
-    // 清空現有資料並重新載入
-    classrooms.clear();
-
-    for (const classroom of syncedClassrooms) {
-      classrooms.set(classroom.id, classroom);
-    }
-
-    // 廣播給所有連線的客戶端
-    broadcast({
-      type: "init",
-      classrooms: Array.from(classrooms.values())
-    });
-
-    return new Response(JSON.stringify({ success: true, count: classrooms.size }), {
-      headers: { "Content-Type": "application/json" }
-    });
-  }
-
   if (url.pathname.startsWith("/api/classrooms/") && req.method === "DELETE") {
     const id = url.pathname.split("/")[3];
 
@@ -309,7 +286,7 @@ async function serveFile(filename: string): Promise<Response> {
 }
 
 console.log("Server starting...");
-console.log("資料儲存於瀏覽器 localStorage");
+console.log("資料儲存於雲端服務記憶體");
 
 // 正式啟動伺服器，並使用 handleRequest 來處理所有進入的流量
 Deno.serve(handleRequest);

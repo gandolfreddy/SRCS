@@ -403,45 +403,6 @@
     let editingClassroomId = null;
     const classroomsContainer = document.getElementById('classrooms-container');
     const emptyState = document.getElementById('empty-state');
-    const STORAGE_KEY = 'attendance_classrooms';
-
-    // LocalStorage 操作
-    function saveToLocalStorage(classrooms) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(classrooms));
-      } catch (e) {
-        console.error('無法保存到 localStorage:', e);
-      }
-    }
-
-    function loadFromLocalStorage() {
-      try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-      } catch (e) {
-        console.error('無法從 localStorage 讀取:', e);
-        return [];
-      }
-    }
-
-    // 同步 localStorage 資料到伺服器
-    async function syncToServer() {
-      const classrooms = loadFromLocalStorage();
-      if (classrooms.length > 0) {
-        try {
-          await fetch('/api/classrooms/sync', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ classrooms })
-          });
-          console.log('已同步', classrooms.length, '個教室到伺服器');
-        } catch (error) {
-          console.error('同步到伺服器失敗:', error);
-        }
-      }
-    }
 
     function connectWebSocket() {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -456,52 +417,16 @@
 
         if (data.type === 'init') {
           renderClassrooms(data.classrooms);
-          // 保存到 localStorage
-          saveToLocalStorage(data.classrooms);
         } else if (data.type === 'classroom_added') {
           addClassroom(data.classroom);
-          // 更新 localStorage
-          const classrooms = loadFromLocalStorage();
-          classrooms.push(data.classroom);
-          saveToLocalStorage(classrooms);
         } else if (data.type === 'classroom_updated') {
           updateClassroom(data.classroom);
-          // 更新 localStorage
-          const classrooms = loadFromLocalStorage();
-          const index = classrooms.findIndex(c => c.id === data.classroom.id);
-          if (index !== -1) {
-            classrooms[index] = data.classroom;
-            saveToLocalStorage(classrooms);
-          }
         } else if (data.type === 'classroom_deleted') {
           removeClassroom(data.classroomId);
-          // 更新 localStorage
-          const classrooms = loadFromLocalStorage();
-          const filtered = classrooms.filter(c => c.id !== data.classroomId);
-          saveToLocalStorage(filtered);
         } else if (data.type === 'student_updated') {
           updateStudent(data.classroomId, data.studentIndex, data.present, data.left);
-          // 更新 localStorage
-          const classrooms = loadFromLocalStorage();
-          const classroom = classrooms.find(c => c.id === data.classroomId);
-          if (classroom && classroom.students[data.studentIndex]) {
-            classroom.students[data.studentIndex].present = data.present;
-            classroom.students[data.studentIndex].left = data.left || false;
-            saveToLocalStorage(classrooms);
-          }
         } else if (data.type === 'classroom_cleared') {
-          // 清除該教室所有學生狀態
           clearAllStudentCards(data.classroomId);
-          // 更新 localStorage
-          const classrooms = loadFromLocalStorage();
-          const classroom = classrooms.find(c => c.id === data.classroomId);
-          if (classroom) {
-            classroom.students.forEach(s => {
-              s.present = false;
-              s.left = false;
-            });
-            saveToLocalStorage(classrooms);
-          }
         }
       };
 
@@ -856,14 +781,7 @@
     }
 
     // 初始化
-    async function init() {
-      // 先從 localStorage 恢復資料並同步到伺服器
-      await syncToServer();
-      // 然後連線 WebSocket
-      connectWebSocket();
-    }
-
-    init();
+    connectWebSocket();
   </script>
 </body>
 
