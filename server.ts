@@ -186,6 +186,31 @@ async function handleRequest(req: Request): Promise<Response> {
     });
   }
 
+  // 清除教室所有學生狀態
+  if (url.pathname.match(/^\/api\/classrooms\/[^/]+\/clear$/) && req.method === "POST") {
+    const id = url.pathname.split("/")[3];
+    const classroom = classrooms.get(id);
+
+    if (!classroom) {
+      return new Response("Classroom not found", { status: 404 });
+    }
+
+    // 清除所有學生狀態
+    classroom.students.forEach(student => {
+      student.present = false;
+      student.left = false;
+    });
+
+    broadcast({
+      type: "classroom_cleared",
+      classroomId: id
+    });
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
   if (url.pathname.startsWith("/api/classrooms/") && req.method === "PATCH") {
     const id = url.pathname.split("/")[3];
     const body = await req.json();

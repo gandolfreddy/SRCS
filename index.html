@@ -231,6 +231,8 @@
           removeClassroom(data.classroomId);
         } else if (data.type === 'student_updated') {
           updateStudent(data.classroomId, data.studentIndex, data.present, data.left);
+        } else if (data.type === 'classroom_cleared') {
+          clearAllStudentCards(data.classroomId);
         }
       };
 
@@ -322,6 +324,13 @@
           }
         }
       }
+    }
+
+    function clearAllStudentCards(classroomId) {
+      const cards = document.querySelectorAll(`[data-classroom-id="${classroomId}"]`);
+      cards.forEach(card => {
+        card.classList.remove('present', 'left');
+      });
     }
 
     function updateClassroom(classroom) {

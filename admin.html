@@ -110,6 +110,15 @@
       background: #1976D2;
     }
 
+    .btn-warning {
+      background: #FF9800;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #F57C00;
+    }
+
     .students-grid {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
@@ -480,6 +489,19 @@
             classroom.students[data.studentIndex].left = data.left || false;
             saveToLocalStorage(classrooms);
           }
+        } else if (data.type === 'classroom_cleared') {
+          // 清除該教室所有學生狀態
+          clearAllStudentCards(data.classroomId);
+          // 更新 localStorage
+          const classrooms = loadFromLocalStorage();
+          const classroom = classrooms.find(c => c.id === data.classroomId);
+          if (classroom) {
+            classroom.students.forEach(s => {
+              s.present = false;
+              s.left = false;
+            });
+            saveToLocalStorage(classrooms);
+          }
         }
       };
 
@@ -525,6 +547,11 @@
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'classroom-actions';
 
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'btn btn-small btn-warning';
+      clearBtn.textContent = '🔄 清除狀態';
+      clearBtn.onclick = () => clearAllStatus(classroom.id, classroom.name);
+
       const editBtn = document.createElement('button');
       editBtn.className = 'btn btn-small btn-edit';
       editBtn.textContent = '✏️ 編輯';
@@ -535,6 +562,7 @@
       deleteBtn.textContent = '🗑️ 刪除';
       deleteBtn.onclick = () => deleteClassroom(classroom.id);
 
+      actionsDiv.appendChild(clearBtn);
       actionsDiv.appendChild(editBtn);
       actionsDiv.appendChild(deleteBtn);
 
@@ -595,6 +623,13 @@
           card.classList.add('present');
         }
       }
+    }
+
+    function clearAllStudentCards(classroomId) {
+      const cards = document.querySelectorAll(`[data-classroom-id="${classroomId}"]`);
+      cards.forEach(card => {
+        card.classList.remove('present', 'left');
+      });
     }
 
     async function toggleStudentPresence(classroomId, studentIndex) {
@@ -728,6 +763,25 @@
       } catch (error) {
         console.error('更新教室失敗:', error);
         alert(error.message || '更新教室失敗，請重試');
+      }
+    }
+
+    async function clearAllStatus(classroomId, classroomName) {
+      if (!confirm(`確定要清除「${classroomName}」所有學生的狀態嗎？`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/classrooms/${classroomId}/clear`, {
+          method: 'POST'
+        });
+
+        if (!response.ok) {
+          throw new Error('清除狀態失敗');
+        }
+      } catch (error) {
+        console.error('清除狀態失敗:', error);
+        alert('清除狀態失敗，請重試');
       }
     }
 
