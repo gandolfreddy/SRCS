@@ -81,3 +81,13 @@
 - 使用「新增」而非「添加」
 - 使用「保證」而非「確保」
 - 使用「取得」而非「獲取」
+
+## 筆記
+
+- Deno Deploy 的服務不夠穩定，就算成功部屬也有可能出現以下的狀況。![alt text](image.png)
+  - [管理員頁面](https://srcs.gandolfreddy.deno.net/admin)
+  - [使用者頁面](https://srcs.gandolfreddy.deno.net)
+- 改使用 [Render](https://render.com/docs/free) 的免費方案部屬。
+  - Render 成功部屬，並且在免費方案的限制內運行。
+  - [Dashboard](https://dashboard.render.com/web/srv-d60q83ngi27c73aqqqbg/events)
+  - [服務網址](https://srcs-c467.onrender.com)
