@@ -274,6 +274,11 @@
         class="btn"
         onclick="openAddClassroomModal()"
       >➕ 新增教室</button>
+      <button
+        class="btn"
+        onclick="openImportJsonModal()"
+        style="margin-left: 10px;"
+      >📥 由 JSON 匯入</button>
     </div>
 
     <div id="classrooms-container"></div>
@@ -394,6 +399,40 @@
           class="btn"
           onclick="saveClassroom()"
         >確定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 由 JSON 匯入 Modal -->
+  <div
+    id="importJsonModal"
+    class="modal"
+  >
+    <div class="modal-content">
+      <h2 class="modal-title">由 JSON 匯入</h2>
+
+      <div class="form-group">
+        <label class="form-label">JSON 格式資料</label>
+        <textarea
+          id="importJsonData"
+          class="form-input"
+          style="min-height: 250px; font-family: monospace;"
+          placeholder='[&#10;  {&#10;    "classroom": "教室名稱",&#10;    "classroom_url": "路徑",&#10;    "students": ["學生1", "學生2"]&#10;  }&#10;]'
+        ></textarea>
+        <div style="font-size: 0.85em; color: #999; margin-top: 8px;">
+          格式說明：JSON 陣列，每個物件包含 classroom（教室名稱）、classroom_url（路徑）、students（學生名單陣列）
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          class="btn btn-secondary"
+          onclick="closeImportJsonModal()"
+        >取消</button>
+        <button
+          class="btn"
+          onclick="importFromJson()"
+        >確定匯入</button>
       </div>
     </div>
   </div>
@@ -778,6 +817,99 @@
         console.error('建立教室失敗:', error);
         alert(error.message || '建立教室失敗，請重試');
       }
+    }
+
+    // JSON 匯入功能
+    function openImportJsonModal() {
+      document.getElementById('importJsonModal').classList.add('active');
+      document.getElementById('importJsonData').value = '';
+    }
+
+    function closeImportJsonModal() {
+      document.getElementById('importJsonModal').classList.remove('active');
+    }
+
+    async function importFromJson() {
+      const jsonText = document.getElementById('importJsonData').value.trim();
+
+      if (!jsonText) {
+        alert('請輸入 JSON 資料');
+        return;
+      }
+
+      let classroomsData;
+      try {
+        classroomsData = JSON.parse(jsonText);
+      } catch (e) {
+        alert('JSON 格式錯誤，請檢查輸入內容');
+        return;
+      }
+
+      if (!Array.isArray(classroomsData)) {
+        alert('JSON 資料必須是陣列格式');
+        return;
+      }
+
+      let successCount = 0;
+      let failedCount = 0;
+      const errors = [];
+
+      for (const item of classroomsData) {
+        // 驗證必要欄位
+        if (!item.classroom || !item.classroom_url || !item.students) {
+          errors.push(`缺少必要欄位: ${JSON.stringify(item).substring(0, 50)}...`);
+          failedCount++;
+          continue;
+        }
+
+        if (!Array.isArray(item.students) || item.students.length === 0) {
+          errors.push(`學生名單格式錯誤或為空: ${item.classroom}`);
+          failedCount++;
+          continue;
+        }
+
+        // 驗證路徑格式
+        if (!/^[a-zA-Z0-9\-_]+$/.test(item.classroom_url)) {
+          errors.push(`路徑格式無效 (僅限英數字、連字號、底線): ${item.classroom_url}`);
+          failedCount++;
+          continue;
+        }
+
+        try {
+          const response = await fetch('/api/classrooms', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: item.classroom,
+              path: item.classroom_url,
+              students: item.students
+            })
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || '建立教室失敗');
+          }
+
+          successCount++;
+        } catch (error) {
+          errors.push(`${item.classroom}: ${error.message}`);
+          failedCount++;
+        }
+      }
+
+      closeImportJsonModal();
+
+      let message = `匯入完成！\n成功: ${successCount} 個教室`;
+      if (failedCount > 0) {
+        message += `\n失敗: ${failedCount} 個`;
+        if (errors.length > 0) {
+          message += `\n\n錯誤詳情:\n${errors.join('\n')}`;
+        }
+      }
+      alert(message);
     }
 
     // 初始化
